@@ -1,0 +1,160 @@
+import { useState, useEffect } from 'react';
+import {CheckCircle} from 'lucide-react';
+
+const TestPanel = ({ problem, testCases, setTestCases, runResult, isRunning }) => {
+    const [activeTab, setActiveTab] = useState('testcase');
+    const [activeTestCaseId, setActiveTestCaseId] = useState(0);
+
+    useEffect(() => {
+        if (runResult) {
+            setActiveTab('result');
+        }
+    }, [runResult]);
+
+    return (
+        <div className="flex flex-col h-full bg-white dark:bg-[#262626] border-t border-gray-300 dark:border-[#2f2f2f]">
+            {/* Main Tabs (Testcase / Result) */}
+            <div className="flex bg-gray-50 dark:bg-[#1a1a1a] px-4 pt-2 border-b border-gray-300 dark:border-[#2f2f2f]">
+                <button
+                    onClick={() => setActiveTab('testcase')}
+                    className={`mr-6 pb-2 text-sm font-medium transition-colors border-b-2 
+                        ${activeTab === 'testcase'
+                            ? 'text-yellow-500 border-yellow-500'
+                            : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-900 dark:hover:text-gray-800 dark:text-gray-200'}`}
+                >
+                    <div className="flex items-center gap-2">
+                        <span className="text-green-500">
+                            <CheckCircle className="w-4 h-4" />
+                        </span>
+                        Testcase
+                    </div>
+                </button>
+                <button
+                    onClick={() => setActiveTab('result')}
+                    className={`mr-6 pb-2 text-sm font-medium transition-colors border-b-2 
+                        ${activeTab === 'result'
+                            ? 'text-yellow-500 border-yellow-500'
+                            : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-900 dark:hover:text-gray-800 dark:text-gray-200'}`}
+                >
+                    <div className="flex items-center gap-2">
+                        Test Result
+                        {runResult && (
+                            runResult.every(r => (r.status?.id || r.status_id) === 3)
+                                ? <span className="text-green-500 text-xs">Passed</span>
+                                : <span className="text-red-500 text-xs">Failed</span>
+                        )}
+                    </div>
+                </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 p-4 overflow-y-auto">
+                {activeTab === 'testcase' ? (
+                    <div className="space-y-4">
+                        {/* Case Tabs */}
+                        <div className="flex items-center gap-2 mb-4">
+                            {problem?.explainTestCase?.map((_, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => setActiveTestCaseId(idx)}
+                                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors
+                                        ${activeTestCaseId === idx
+                                            ? 'bg-gray-100 text-black dark:bg-[#2f2f2f] dark:text-white'
+                                            : 'bg-transparent text-gray-500 dark:text-gray-400 hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-gray-700/50 dark:hover:text-gray-800 dark:text-gray-200'}`}
+                                >
+                                    Case {idx + 1}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Selected Case Input */}
+                        {problem?.explainTestCase && problem.explainTestCase[activeTestCaseId] && (
+                            <div className="space-y-4">
+                                <div className="space-y-1">
+                                    <label className="text-xs text-gray-500 dark:text-gray-400">Input</label>
+                                    <div className="bg-gray-50 dark:bg-[#1a1a1a] p-3 rounded-lg text-gray-800 dark:text-gray-300 font-mono text-sm border border-gray-200 dark:border-[#2f2f2f]">
+                                        {problem.explainTestCase[activeTestCaseId].input}
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs text-gray-500 dark:text-gray-400">Expected Output</label>
+                                    <div className="bg-gray-50 dark:bg-[#1a1a1a] p-3 rounded-lg text-gray-800 dark:text-gray-300 font-mono text-sm border border-gray-200 dark:border-[#2f2f2f]">
+                                        {problem.explainTestCase[activeTestCaseId].output}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {!runResult ? (
+                            <div className="text-gray-500 text-center mt-8">
+                                Run your code to see results here
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {/* Result Tabs (Reusable interaction pattern) */}
+                                <div className="flex items-center gap-2 mb-4">
+                                    {runResult.map((res, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => setActiveTestCaseId(idx)} // Reuse same state for result view
+                                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2
+                                                ${activeTestCaseId === idx
+                                                    ? 'bg-gray-100 text-black dark:bg-[#2f2f2f] dark:text-white'
+                                                    : 'bg-transparent text-gray-500 dark:text-gray-400 hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-gray-700/50 dark:hover:text-gray-800 dark:text-gray-200'}`}
+                                        >
+                                            {(res.status?.id || res.status_id) === 3 ? (
+                                                <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                            ) : (
+                                                <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                            )}
+                                            Case {idx + 1}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Selected Result Detail */}
+                                {runResult[activeTestCaseId] && (
+                                    <div className="space-y-4">
+                                        {(runResult[activeTestCaseId].status?.id || runResult[activeTestCaseId].status_id) !== 3 && (
+                                            <div className="bg-red-900/20 border border-red-900/50 p-3 rounded-lg text-red-400 font-mono text-sm">
+                                                {runResult[activeTestCaseId].stderr || runResult[activeTestCaseId].compile_output || runResult[activeTestCaseId].message || 'Error'}
+                                            </div>
+                                        )}
+
+                                        <div className="space-y-1">
+                                            <label className="text-xs text-gray-500 dark:text-gray-400">Input</label>
+                                            <div className="bg-gray-50 dark:bg-[#1a1a1a] p-3 rounded-lg text-gray-800 dark:text-gray-300 font-mono text-sm border border-gray-200 dark:border-[#2f2f2f]">
+                                                {problem?.explainTestCase?.[activeTestCaseId]?.input || "N/A"}
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-1">
+                                            <label className="text-xs text-gray-500 dark:text-gray-400">Output</label>
+                                            <div className={`p-3 rounded-lg font-mono text-sm border 
+                                                ${(runResult[activeTestCaseId].status?.id || runResult[activeTestCaseId].status_id) === 3
+                                                    ? 'bg-gray-50 text-gray-800 border-gray-200 dark:bg-[#1a1a1a] dark:text-gray-300 dark:border-[#2f2f2f]'
+                                                    : 'bg-red-50 text-red-600 border-red-200 dark:bg-red-900/10 dark:text-red-200 dark:border-red-900/30'}`}>
+                                                {runResult[activeTestCaseId].stdout || "N/A"}
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-1">
+                                            <label className="text-xs text-gray-500 dark:text-gray-400">Expected Output</label>
+                                            <div className="bg-gray-50 dark:bg-[#1a1a1a] p-3 rounded-lg text-gray-800 dark:text-gray-300 font-mono text-sm border border-gray-200 dark:border-[#2f2f2f]">
+                                                {runResult[activeTestCaseId].expected_output}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default TestPanel;
